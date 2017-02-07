@@ -13,6 +13,7 @@
 
 
 import mdp, util
+from util import PriorityQueue, Counter
 
 from learningAgents import ValueEstimationAgent
 
@@ -45,7 +46,25 @@ class ValueIterationAgent(ValueEstimationAgent):
 
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
-
+        statelist = self.mdp.getStates()
+        for state in statelist:
+            self.values[state] = 0
+        for k in range(iterations):
+            oldValues = Counter(self.values)
+            for state in statelist:
+                possibleActions = self.mdp.getPossibleActions(state)
+                actionRewards = PriorityQueue()
+                if possibleActions == ():
+                    continue
+                for action in possibleActions:
+                    reward = 0
+                    statesProbs = self.mdp.getTransitionStatesAndProbs(state, action)
+                    for nextState, prob in statesProbs:
+                        reward += prob*(self.mdp.getReward(state,action,nextState)
+                                        +self.discount*oldValues[nextState])
+                    actionRewards.push(reward, -reward)
+                maxRewards = actionRewards.pop()
+                self.values[state] = maxRewards
 
     def getValue(self, state):
         """
@@ -60,7 +79,12 @@ class ValueIterationAgent(ValueEstimationAgent):
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        statesProbs = self.mdp.getTransitionStatesAndProbs(state, action)
+        reward = 0
+        for nextState, prob in statesProbs:
+            reward += prob * (self.mdp.getReward(state, action, nextState)
+                              + self.discount * self.values[nextState])
+        return reward
 
     def computeActionFromValues(self, state):
         """
@@ -72,7 +96,15 @@ class ValueIterationAgent(ValueEstimationAgent):
           terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        possibleActions = self.mdp.getPossibleActions(state)
+        qRewards = PriorityQueue()
+        if possibleActions == ():
+            return None
+        for action in possibleActions:
+            reward = self.computeQValueFromValues(state, action)
+            qRewards.push(action, -reward)
+        optimalAction = qRewards.pop()
+        return optimalAction
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
