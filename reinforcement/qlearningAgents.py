@@ -109,8 +109,8 @@ class QLearningAgent(ReinforcementAgent):
         randomPolicy = util.flipCoin(self.epsilon)
         if not randomPolicy:
             action = self.computeActionFromQValues(state)
-            if self.qValues[state][action] < 0.0:
-                self.getUnvisitedAction(state, legalActions)
+            if action is not None and self.qValues[state][action] < 0.0:
+                action = self.getUnvisitedAction(state, legalActions)
         if randomPolicy or (action is None):
             action = random.choice(legalActions)
         return action
@@ -146,7 +146,7 @@ class QLearningAgent(ReinforcementAgent):
         if state not in self.qValues:
             self.qValues[state] = util.Counter()
         if action not in self.qValues[state]:
-            self.qValues[state][action] = 0
+            self.qValues[state][action] = 0.0
         self.qValues[state][action] = (1-self.alpha) * self.qValues[state][action] + self.alpha * sample
 
     def getPolicy(self, state):
