@@ -81,9 +81,15 @@ class QLearningAgent(ReinforcementAgent):
         """
         "*** YOUR CODE HERE ***"
         if state in self.qValues:
-            return max(self.qValues[state].keys(), lambda action : self.getQValue(state, action))[0]
-        else:
-            return None
+            keys = self.qValues[state].keys()
+            maxkeys = []
+            maxValue = max(keys, lambda action : self.getQValue(state, action))
+            for key in keys:
+                if self.getQValue(state, key) == maxValue:
+                    maxkeys.append(key)
+            if maxkeys:
+                return random.choice(maxkeys)
+        return None
 
     def getAction(self, state):
         """
