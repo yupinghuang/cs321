@@ -80,25 +80,27 @@ class QLearningAgent(ReinforcementAgent):
           you should return None.
         """
         "*** YOUR CODE HERE ***"
-        if state in self.qValues:
-            keys = self.qValues[state].keys()
-            legalActions = set(self.getLegalActions(state))
-            maxkeys = []
-            maxValue = self.qValues[state][max(keys, lambda action : self.getQValue(state, action))[0]]
-            print 'maxval', maxValue
-            for key in keys:
-                legalActions.remove(key)
-                if self.getQValue(state, key) == maxValue:
-                    maxkeys.append(key)
+        if state not in self.qValues:
+            return None
+        maxAction = None
+        maxVal = None
+        for action, value in self.qValues[state].items():
+            if maxVal is None or maxVal<value:
+                maxVal = value
+                maxAction = action
+        if maxVal<0.:
+            # not visited node is better than all visited nodes
+            toVisit = self.getUnvisitedAction(state, self.getLegalActions(state))
+            if toVisit:
+                return toVisit
+        # now find all the maxes
+        maxActions = []
+        for action, value in self.qValues[state].items():
+            if value==maxVal:
+                maxActions.append(action)
+        return random.choice(maxActions)
 
-            if maxValue<=0. and legalActions:
-                return random.choice(list(legalActions))
-
-            if maxkeys:
-                return random.choice(maxkeys)
-
-        return None
-
+        
     def getAction(self, state):
         """
           Compute the action to take in the current state.  With
@@ -112,13 +114,13 @@ class QLearningAgent(ReinforcementAgent):
         """
         # Pick Action
         legalActions = self.getLegalActions(state)
+        if not legalActions:
+            return None
         action = None
         "*** YOUR CODE HERE ***"
         randomPolicy = util.flipCoin(self.epsilon)
         if not randomPolicy:
             action = self.computeActionFromQValues(state)
-            if action is not None and self.qValues[state][action] < 0.0:
-                action = self.getUnvisitedAction(state, legalActions)
         if randomPolicy or (action is None):
             action = random.choice(legalActions)
         return action
