@@ -80,28 +80,31 @@ class QLearningAgent(ReinforcementAgent):
           you should return None.
         """
         "*** YOUR CODE HERE ***"
+        # if the state is first visited, and we need to initialize it
+        legalActions = self.getLegalActions(state)
+        if not legalActions:
+            return None
+
         if state not in self.qValues:
-            legalActions = self.getLegalActions(state)
-            if not legalActions:
-                return None
             action = random.choice(legalActions)
             self.qValues[state] = util.Counter()
             for la in legalActions:
                 self.qValues[state][la] = 0.
             return action
+
+        # if the state is already visited before
         maxAction = None
         maxVal = None
         for action, value in self.qValues[state].items():
             if maxVal is None or maxVal<value:
                 maxVal = value
                 maxAction = action
-        if maxAction is None:
-            return None
-        if maxVal<0.:
+        if maxAction is None or maxVal<0.:
             # not visited node is better than all visited nodes
             toVisit = self.getUnvisitedAction(state, self.getLegalActions(state))
             if toVisit:
                 return toVisit
+
         # now find all the maxes
         maxActions = []
         for action, value in self.qValues[state].items():
@@ -125,12 +128,13 @@ class QLearningAgent(ReinforcementAgent):
         legalActions = self.getLegalActions(state)
         if not legalActions:
             return None
+
         action = None
         "*** YOUR CODE HERE ***"
         randomPolicy = util.flipCoin(self.epsilon)
         if not randomPolicy:
             action = self.computeActionFromQValues(state)
-        if randomPolicy or (action is None):
+        if randomPolicy:
             action = random.choice(legalActions)
         return action
 
