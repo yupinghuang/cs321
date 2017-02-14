@@ -81,13 +81,22 @@ class QLearningAgent(ReinforcementAgent):
         """
         "*** YOUR CODE HERE ***"
         if state not in self.qValues:
-            return None
+            legalActions = self.getLegalActions(state)
+            if not legalActions:
+                return None
+            action = random.choice(legalActions)
+            self.qValues[state] = util.Counter()
+            for la in legalActions:
+                self.qValues[state][la] = 0.
+            return action
         maxAction = None
         maxVal = None
         for action, value in self.qValues[state].items():
             if maxVal is None or maxVal<value:
                 maxVal = value
                 maxAction = action
+        if maxAction is None:
+            return None
         if maxVal<0.:
             # not visited node is better than all visited nodes
             toVisit = self.getUnvisitedAction(state, self.getLegalActions(state))
