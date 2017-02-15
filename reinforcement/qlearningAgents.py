@@ -43,6 +43,8 @@ class QLearningAgent(ReinforcementAgent):
         ReinforcementAgent.__init__(self, **args)
 
         "*** YOUR CODE HERE ***"
+        # A dict of util.Counter to store q values mapping state to
+        # Counter's mapping actions to qValue
         self.qValues = {}
 
     def getQValue(self, state, action):
@@ -52,6 +54,7 @@ class QLearningAgent(ReinforcementAgent):
           or the Q node value otherwise
         """
         "*** YOUR CODE HERE ***"
+        # If a state has not been seen yet
         if state not in self.qValues:
             self.qValues[state] = util.Counter()
             legalActions = self.getLegalActions(state)
@@ -61,9 +64,8 @@ class QLearningAgent(ReinforcementAgent):
             # initialize all legal actions
             if action not in legalActions:
                 raise Exception("Illegal Action")
-            if legalActions:
-                for la in legalActions:
-                    self.qValues[state][la] = 0.0
+            for la in legalActions:
+                self.qValues[state][la] = 0.0
         return self.qValues[state][action]
 
     def computeValueFromQValues(self, state):
@@ -88,18 +90,35 @@ class QLearningAgent(ReinforcementAgent):
           you should return None.
         """
         "*** YOUR CODE HERE ***"
-        # if the state is first visited, and we need to initialize it
+
         legalActions = self.getLegalActions(state)
         if not legalActions:
             return None
 
         if state not in self.qValues:
+            # state not visited before
             action = random.choice(legalActions)
             self.qValues[state] = util.Counter()
             for la in legalActions:
                 self.qValues[state][la] = 0.
             return action
-
+        else:
+            # Find the best action
+            maxAction = None
+            for action in legalActions:
+                if maxAction is None or self.getQValue(state, action)>self.getQValue(state, maxAction):
+                    maxAction = action
+            maxVal = self.getQValue(state, maxAction)
+            maxActions = []
+            # check if there are multiple good ones
+            for action in legalActions:
+                if self.getQValue(state, action)==maxVal:
+                    maxActions.append(action)
+            if len(maxActions)>1:
+                return random.choice(maxActions)
+            else:
+                return maxAction
+        '''
         # if the state is already visited before
         maxAction = None
         maxVal = None
@@ -119,8 +138,8 @@ class QLearningAgent(ReinforcementAgent):
             if value==maxVal:
                 maxActions.append(action)
         return random.choice(maxActions)
+        '''
 
-        
     def getAction(self, state):
         """
           Compute the action to take in the current state.  With
@@ -145,19 +164,6 @@ class QLearningAgent(ReinforcementAgent):
         if randomPolicy:
             action = random.choice(legalActions)
         return action
-
-    def getUnvisitedAction(self, state, legalActions):
-        """
-
-        :param state:
-        :param legalActions:
-        :return:
-        """
-        for action in legalActions:
-            if action not in self.qValues[state]:
-                self.qValues[state][action] = 0.0
-                return action
-        return None
 
     def update(self, state, action, nextState, reward):
         """
