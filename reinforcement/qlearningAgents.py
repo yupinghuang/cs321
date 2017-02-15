@@ -90,55 +90,25 @@ class QLearningAgent(ReinforcementAgent):
           you should return None.
         """
         "*** YOUR CODE HERE ***"
-
         legalActions = self.getLegalActions(state)
         if not legalActions:
             return None
 
-        if state not in self.qValues:
-            # state not visited before
-            action = random.choice(legalActions)
-            self.qValues[state] = util.Counter()
-            for la in legalActions:
-                self.qValues[state][la] = 0.
-            return action
-        else:
-            # Find the best action
-            maxAction = None
-            for action in legalActions:
-                if maxAction is None or self.getQValue(state, action)>self.getQValue(state, maxAction):
-                    maxAction = action
-            maxVal = self.getQValue(state, maxAction)
-            maxActions = []
-            # check if there are multiple good ones
-            for action in legalActions:
-                if self.getQValue(state, action)==maxVal:
-                    maxActions.append(action)
-            if len(maxActions)>1:
-                return random.choice(maxActions)
-            else:
-                return maxAction
-        '''
-        # if the state is already visited before
+        # Find the best action
         maxAction = None
-        maxVal = None
-        for action, value in self.qValues[state].items():
-            if maxVal is None or maxVal<value:
-                maxVal = value
+        for action in legalActions:
+            if maxAction is None or self.getQValue(state, action)>self.getQValue(state, maxAction):
                 maxAction = action
-        if maxAction is None or maxVal<0.:
-            # not visited node is better than all visited nodes
-            toVisit = self.getUnvisitedAction(state, self.getLegalActions(state))
-            if toVisit:
-                return toVisit
-
-        # now find all the maxes
+        maxVal = self.getQValue(state, maxAction)
         maxActions = []
-        for action, value in self.qValues[state].items():
-            if value==maxVal:
+        # check if there are multiple good ones
+        for action in legalActions:
+            if self.getQValue(state, action)==maxVal:
                 maxActions.append(action)
-        return random.choice(maxActions)
-        '''
+        if len(maxActions)>1:
+            return random.choice(maxActions)
+        else:
+            return maxAction
 
     def getAction(self, state):
         """
@@ -202,7 +172,7 @@ class PacmanQAgent(QLearningAgent):
     the values.
     """
     "*** YOUR CODE HERE ***"
-    def __init__(self, epsilon=0.01,gamma=0.8,alpha=0.3, numTraining=0, **args):
+    def __init__(self, epsilon=0.05,gamma=0.8,alpha=0.2, numTraining=0, **args):
         """
         These default parameters can be changed from the pacman.py command line.
         For example, to change the exploration rate, try:
@@ -254,6 +224,11 @@ class ApproximateQAgent(PacmanQAgent):
         """
         "*** YOUR CODE HERE ***"
         features = self.featExtractor.getFeatures(state, action)
+        '''
+        for feature in features:
+            if feature not in self.weights:
+                self.weights[feature] = 0.
+        '''
         return features * self.weights
 
     def update(self, state, action, nextState, reward):
@@ -262,9 +237,10 @@ class ApproximateQAgent(PacmanQAgent):
         """
         "*** YOUR CODE HERE ***"
         oldWeights = self.weights.copy()
-        difference = (reward  + self.discount * self.computeValueFromQValues(nextState)) - self.getQValue(state, action)
+        nextStateValue = self.getValue(nextState)
+        difference = (reward  + self.discount * nextStateValue) - self.getQValue(state, action)
         features = self.featExtractor.getFeatures(state, action)
-        for feature in oldWeights:
+        for feature in features:
             self.weights[feature] = oldWeights[feature] + self.alpha * difference * features[feature]
 
     def final(self, state):
