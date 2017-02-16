@@ -118,10 +118,20 @@ class AdvancedFeatureExtractor(FeatureExtractor):
         Returns simple features for a basic reflex Pacman:
         - whether food will be eaten
         - how far away the next food is
-        - whether a ghost collision is imminent
         - whether a ghost is one step away
         - whether the ghost is scared
+        - how far a capsule is
+
+        The weights (from a learning set of 50) are
+        {'closest-food': -7.324690163475542, // The closer the closest food the better
+        'ghost-scared': -31.657843653059256, // It controls closest-food and eats-food, therefore the weight doesn't mean too much here
+                                            // in general, if the ghost is scared, then the longer the ghost is scared, the better.
+        'bias': 205.92219167583784,
+        '#-of-ghosts-1-step-away': -169.8062078133534, // The fewer ghosts step-away the better
+        'closest-capsule': -2.040094126821756, // the closer the closest capsule is, the better
+        'eats-food': 59.134306789728555} // we should eat food essentially
         """
+
         # extract the grid of food and wall locations and get the ghost locations
         food = state.getFood()
         walls = state.getWalls()
@@ -149,6 +159,11 @@ class AdvancedFeatureExtractor(FeatureExtractor):
             # will diverge wildly
             features["closest-food"] = float(dist) / (walls.width * walls.height)
 
+        '''
+        compute how scared the ghost is, with the magnitude of current min scaredTime for the ghosts
+        divided by the initial scare Time (this distinction is necessary because it is
+        possible that pacman eats a ghost whose scare time will be reset to 0)
+        '''
 
         from pacman import SCARED_TIME
         scaredTimers = [ghost.scaredTimer for ghost in state.getGhostStates()]
@@ -159,6 +174,11 @@ class AdvancedFeatureExtractor(FeatureExtractor):
                 features["closest-food"] = 5 * float(dist) / (walls.width * walls.height)
             features["#-of-ghosts-1-step-away"] = 0.
 
+        '''
+        compute the distance of the closest capsule, and we care about it because we now have the
+        feature of ghost-scared, and we would prefer eating a capsule if possible.
+        The magnitude is the actual min distance to the closest capsule (and will be normalized later)
+        '''
         capsules = state.getCapsules()
         # We looked up the implementation of Grid object in game.py to decide how the coordinates are encoded
         capsulesMatrix = [[(x, y) in capsules for y in xrange(walls.height)] for x in xrange(walls.width)]
