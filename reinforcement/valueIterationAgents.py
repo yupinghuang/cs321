@@ -45,6 +45,10 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.values = util.Counter() # A Counter is a dict with default 0
 
         # Write value iteration code here
+        """
+        Value iteration implementation (batch version). First copy the old
+        values and then update.
+        """
         "*** YOUR CODE HERE ***"
         statelist = self.mdp.getStates()
         for state in statelist:
@@ -53,6 +57,7 @@ class ValueIterationAgent(ValueEstimationAgent):
             oldValues = Counter(self.values)
             for state in statelist:
                 possibleActions = self.mdp.getPossibleActions(state)
+                # use a priority queue to find the max of reward
                 actionRewards = PriorityQueue()
                 if possibleActions == ():
                     continue
@@ -81,6 +86,7 @@ class ValueIterationAgent(ValueEstimationAgent):
         "*** YOUR CODE HERE ***"
         statesProbs = self.mdp.getTransitionStatesAndProbs(state, action)
         reward = 0
+        # Plug the values in the equation to get the value
         for nextState, prob in statesProbs:
             reward += prob * (self.mdp.getReward(state, action, nextState)
                               + self.discount * self.values[nextState])
@@ -88,12 +94,10 @@ class ValueIterationAgent(ValueEstimationAgent):
 
     def computeActionFromValues(self, state):
         """
-          The policy is the best action in the given state
-          according to the values currently stored in self.values.
+          Compute the best action at a state.
 
-          You may break ties any way you see fit.  Note that if
-          there are no legal actions, which is the case at the
-          terminal state, you should return None.
+          Return None if there are no possible actions. Tie break
+          by first occurences.
         """
         "*** YOUR CODE HERE ***"
         possibleActions = self.mdp.getPossibleActions(state)
