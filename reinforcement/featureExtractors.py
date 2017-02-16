@@ -154,7 +154,7 @@ class AdvancedFeatureExtractor(FeatureExtractor):
         scaredTimers = [ghost.scaredTimer for ghost in state.getGhostStates()]
         features["ghost-scared"] = float(min(scaredTimers))/SCARED_TIME
         if features["ghost-scared"] > 0.05:
-            features["eats-food"] = 1.0
+            features["eats-food"] = 2.0
             features["#-of-ghosts-1-step-away"] = 0.
 
         capsules = state.getCapsules()
