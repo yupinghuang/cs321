@@ -154,10 +154,17 @@ class AdvancedFeatureExtractor(FeatureExtractor):
         scaredTimers = [ghost.scaredTimer for ghost in state.getGhostStates()]
         features["ghost-scared"] = float(min(scaredTimers))/SCARED_TIME
         if features["ghost-scared"] > 0.05:
-            features["eats-food"] = 2.0
+            features["eats-food"] = 5.0
+            if dist is not None:
+                features["closest-food"] = 5 * float(dist) / (walls.width * walls.height)
             features["#-of-ghosts-1-step-away"] = 0.
 
         capsules = state.getCapsules()
-        
+        # We looked up the implementation of Grid object in game.py to decide how the coordinates are encoded
+        capsulesMatrix = [[(x, y) in capsules for y in xrange(walls.height)] for x in xrange(walls.width)]
+        dist = closestFood((next_x, next_y), capsulesMatrix, walls)
+        if dist is not None and features["eats-food"]:
+            features["closest-capsule"] = float(dist) / (walls.width * walls.height)
+
         features.divideAll(10.0)
         return features
