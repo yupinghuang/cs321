@@ -124,8 +124,9 @@ class AdvancedFeatureExtractor(FeatureExtractor):
 
         The weights (from a learning set of 50) are
         {'closest-food': -7.324690163475542, // The closer the closest food the better
-        'ghost-scared': -31.657843653059256, // It controls closest-food and eats-food, therefore the weight doesn't mean too much here
-                                            // in general, if the ghost is scared, then the longer the ghost is scared, the better.
+        'ghost-scared': -31.657843653059256, // ScaredTime usually decreases as time goes on and correlate with larger gain.
+                                            // Therefore we obtain the negative weight. But this variable is mainly to control
+                                            // eats-food and closest-food.
         'bias': 205.92219167583784,
         '#-of-ghosts-1-step-away': -169.8062078133534, // The fewer ghosts step-away the better
         'closest-capsule': -2.040094126821756, // the closer the closest capsule is, the better
