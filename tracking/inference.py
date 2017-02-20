@@ -223,15 +223,7 @@ class ExactInference(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         oldBeliefs = self.beliefs
-        '''
-        for position in oldBeliefs:
-            # newPostDist[p] = Pr( ghost is at position p at time t + 1 | ghost is at position oldPos at time t )
-            newPosDistr = self.getPositionDistribution(self.setGhostPosition(gameState, position))
-            probability = 0.
-            for p in newPosDistr:
-                probability += newPosDistr[p]*oldBeliefs[p]
-            self.beliefs[position] = probability
-        '''
+
         self.beliefs = util.Counter()
         for position in self.legalPositions:
             newPosDistr = self.getPositionDistribution(self.setGhostPosition(gameState, position))
