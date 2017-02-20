@@ -179,18 +179,18 @@ class GreedyBustersAgent(BustersAgent):
         "*** YOUR CODE HERE ***"
         if not livingGhosts:
             return None
-        closestGhost = None
+        closestGhostPosition = None
         closestGhostDist = None
-        for i, ghost in enumerate(livingGhosts):
-            mostProbPosition = livingGhostPositionDistributions[i].argMax()
+        for i, ghost in enumerate(livingGhostPositionDistributions):
+            mostProbPosition = ghost.argMax()
             distance = self.distancer.getDistance(mostProbPosition, pacmanPosition)
-            if closestGhost is None or closestGhostDist > distance:
-                closestGhost = ghost
+            if closestGhostPosition is None or closestGhostDist > distance:
+                closestGhostPosition = mostProbPosition
                 closestGhostDist = distance
 
         def getDistanceFromAction(action):
             successorPosition = Actions.getSuccessor(pacmanPosition, action)
-            return self.distancer.getDistance(successorPosition, closestGhostDist)
+            return self.distancer.getDistance(successorPosition, closestGhostPosition)
 
         return min(legalActions, key=getDistanceFromAction)
 
