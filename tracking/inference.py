@@ -159,10 +159,12 @@ class ExactInference(InferenceModule):
             oldBeliefs = self.beliefs.copy()
             for position in oldBeliefs:
                 # here to calculate out P(X_t-1 | E_t)
-                probability = 0.
-                for possiblePosition in self.legalPositions:
-                    trueDistance = util.manhattanDistance(possiblePosition, pacmanPosition)
-                    probability += emissionModel[trueDistance] * oldBeliefs[possiblePosition]
+                # probability = 0.
+                # for possiblePosition in self.legalPositions:
+                #     trueDistance = util.manhattanDistance(possiblePosition, pacmanPosition)
+                #     probability += emissionModel[trueDistance] * oldBeliefs[possiblePosition]
+                trueDistance = util.manhattanDistance(position, pacmanPosition)
+                probability = emissionModel[trueDistance] * oldBeliefs[position]
                 self.beliefs[position] = probability
         self.beliefs.normalize()
 
