@@ -152,16 +152,19 @@ class ExactInference(InferenceModule):
         "*** YOUR CODE HERE ***"
         if observation is None:
             #caught a ghost
-            pass
+            for position in self.beliefs:
+                self.beliefs[position] = 0.
+            self.beliefs[self.getJailPosition()] = 1.
         else:
             oldBeliefs = self.beliefs.copy()
             for position in oldBeliefs:
-                trueDistance = util.manhattanDistance(position, pacmanPosition)
+                # here to calculate out P(X_t-1 | E_t)
                 probability = 0.
                 for possiblePosition in self.legalPositions:
+                    trueDistance = util.manhattanDistance(possiblePosition, pacmanPosition)
                     probability += emissionModel[trueDistance] * oldBeliefs[possiblePosition]
                 self.beliefs[position] = probability
-            self.beliefs.normalize()
+        self.beliefs.normalize()
 
     def elapseTime(self, gameState):
         """
