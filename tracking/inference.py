@@ -248,6 +248,7 @@ class ParticleFilter(InferenceModule):
     def __init__(self, ghostAgent, numParticles=300):
         InferenceModule.__init__(self, ghostAgent);
         self.setNumParticles(numParticles)
+        self.particleList = []
 
     def setNumParticles(self, numParticles):
         self.numParticles = numParticles
@@ -266,6 +267,15 @@ class ParticleFilter(InferenceModule):
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
+        numParticlesPerPosition = self.numParticles/len(self.legalPositions)
+        assert numParticlesPerPosition>0
+        for position in self.legalPositions:
+            for i in range(numParticlesPerPosition):
+                self.particleList.append(position)
+        numParticlesLeft = self.numParticles % len(self.legalPositions)
+        for i in range(numParticlesLeft):
+            self.particleList.append(random.choice(self.legalPositions))
+
 
     def observe(self, observation, gameState):
         """
@@ -298,7 +308,24 @@ class ParticleFilter(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if observation is None:
+        # caught a ghost
+            self.particleList = [self.getJailPosition() for i in range(self.numParticles)]
+            return
+
+        newBelief = util.Counter()
+        for position in self.particleList:
+            trueDistance = util.manhattanDistance(position, pacmanPosition)
+            weight = emissionModel[trueDistance]
+            newBelief[position] += weight
+
+        if newBelief.totalCount() == 0:
+            print 'uniform?'
+            self.initializeUniformly(gameState)
+            return
+
+        self.paricleList = [ util.sample(newBelief) for i in range(self.numParticles)]
+
 
     def elapseTime(self, gameState):
         """
@@ -315,7 +342,12 @@ class ParticleFilter(InferenceModule):
         a belief distribution.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        newParticleList = []
+        for oldPosition in self.particleList:
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPosition))
+            newPosition = util.sample(newPosDist)
+            newParticleList.append(newPosition)
+        self.particleList = newParticleList
 
     def getBeliefDistribution(self):
         """
@@ -325,7 +357,10 @@ class ParticleFilter(InferenceModule):
         Counter object)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        beliefs = util.Counter()
+        beliefs.incrementAll(self.particleList, 1)
+        beliefs.normalize()
+        return beliefs
 
 class MarginalInference(InferenceModule):
     """
