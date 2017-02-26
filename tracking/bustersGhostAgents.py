@@ -17,6 +17,7 @@ from game import Directions
 from game import Actions
 from util import manhattanDistance
 import util
+import random
 
 class StationaryGhost( ghostAgents.GhostAgent ):
     def getDistribution( self, state ):
