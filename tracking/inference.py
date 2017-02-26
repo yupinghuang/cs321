@@ -320,11 +320,10 @@ class ParticleFilter(InferenceModule):
             newBelief[position] += weight
 
         if newBelief.totalCount() == 0:
-            print 'uniform?'
             self.initializeUniformly(gameState)
             return
 
-        self.paricleList = [ util.sample(newBelief) for i in range(self.numParticles)]
+        self.particleList = [ util.sample(newBelief) for i in range(self.numParticles)]
 
 
     def elapseTime(self, gameState):
