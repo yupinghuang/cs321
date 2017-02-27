@@ -435,9 +435,10 @@ class JointParticleFilter:
         "*** YOUR CODE HERE ***"
         possibleTuples = itertools.product(self.legalPositions, repeat=self.numGhosts)
         possibleTuplesList = [ positionTuple for positionTuple in possibleTuples ]
+        random.shuffle(possibleTuplesList)
         self.particleList = []
         for i in range(self.numParticles):
-            self.particleList.append(random.choice(possibleTuplesList))
+            self.particleList.append(possibleTuplesList[i % len(possibleTuplesList)])
 
     def addGhostAgent(self, agent):
         """
@@ -515,7 +516,7 @@ class JointParticleFilter:
                     weight = emissionModels[i][trueDistance]
                     newBelief[position] += weight
                 for position in weights:
-                    weights[position] *= newBelief[position]
+                    weights[position] *= newBelief[position[i]]
 
         self.particleList = [util.sample(weights) for i in range(self.numParticles)]
 
