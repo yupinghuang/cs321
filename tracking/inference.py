@@ -17,6 +17,7 @@ import util
 import random
 import busters
 import game
+import itertools
 
 class InferenceModule:
     """
@@ -432,6 +433,11 @@ class JointParticleFilter:
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
+        possibleTuples = itertools.product(self.legalPositions, repeat=self.numGhosts)
+        possibleTuplesList = [ positionTuple for positionTuple in possibleTuples ]
+        self.particleList = []
+        for i in range(self.numParticles):
+            self.particleList.append(random.choice(possibleTuplesList))
 
     def addGhostAgent(self, agent):
         """
@@ -479,6 +485,40 @@ class JointParticleFilter:
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
         "*** YOUR CODE HERE ***"
+        weights = util.Counter()
+        # initialize weight for each particle to be one
+        for particle in self.particleList:
+            weights[particle] = 1.
+
+        for i in range(0, self.numGhosts):
+            # this ghost is caught
+            if noisyDistances[i] is None:
+                for particleTuple in self.particleList:
+                    #assign weight 1 to particle with corresponding position in jail, 0 otherwise
+                    if particleTuple[i] != self.getJailPosition(i):
+                        weights[particleTuple] = 0.
+                # if all the particles already have zero weight, we need to reinitialize them (including caught ghosts)
+                if weights.totalCount()==0.:
+                    self.initializeParticles()
+                    for j, particle in enumerate(self.particleList):
+                        self.particleList[j] = self.getParticleWithGhostInJail(particle, i)
+                        # initialize weight for each particle to be one
+                        weights = util.Counter()
+                        for particle in self.particleList:
+                            weights[particle] = 1.
+            # this ghost is not caught
+            else:
+                newBelief = util.Counter()
+                for particleTuple in self.particleList:
+                    position = particleTuple[i]
+                    trueDistance = util.manhattanDistance(position, pacmanPosition)
+                    weight = emissionModels[i][trueDistance]
+                    newBelief[position] += weight
+                for position in weights:
+                    weights[position] *= newBelief[position]
+
+        self.particleList = [util.sample(weights) for i in range(self.numParticles)]
+
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
         """
