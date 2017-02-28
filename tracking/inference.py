@@ -575,11 +575,17 @@ class JointParticleFilter:
               agents are always the same.
         """
         newParticles = []
-        for oldParticle in self.particles:
+        # here we change the original code of self.particle to self.particleList
+        for oldParticle in self.particleList:
             newParticle = list(oldParticle) # A list of ghost positions
             # now loop through and update each entry in newParticle...
 
             "*** YOUR CODE HERE ***"
+            for i in range(self.numGhosts):
+                newPosDist = getPositionDistributionForGhost(
+                    setGhostPositions(gameState, oldParticle), i, self.ghostAgents[i])
+                newPosition = util.sample(newPosDist)
+                newParticle[i] = newPosition
 
             "*** END YOUR CODE HERE ***"
             newParticles.append(tuple(newParticle))
