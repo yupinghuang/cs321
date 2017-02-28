@@ -160,10 +160,6 @@ class ExactInference(InferenceModule):
             oldBeliefs = self.beliefs.copy()
             for position in oldBeliefs:
                 # here to calculate out P(X_t-1 | E_t)
-                # probability = 0.
-                # for possiblePosition in self.legalPositions:
-                #     trueDistance = util.manhattanDistance(possiblePosition, pacmanPosition)
-                #     probability += emissionModel[trueDistance] * oldBeliefs[possiblePosition]
                 trueDistance = util.manhattanDistance(position, pacmanPosition)
                 probability = emissionModel[trueDistance] * oldBeliefs[position]
                 self.beliefs[position] = probability
@@ -225,12 +221,12 @@ class ExactInference(InferenceModule):
         "*** YOUR CODE HERE ***"
         oldBeliefs = self.beliefs
 
+        # Multiple the transition model with the previous belief
         self.beliefs = util.Counter()
         for position in self.legalPositions:
             newPosDistr = self.getPositionDistribution(self.setGhostPosition(gameState, position))
             for pos, prob in newPosDistr.items():
                 self.beliefs[pos] += prob * oldBeliefs[position]
-
         self.beliefs.normalize()
 
 
@@ -268,11 +264,13 @@ class ParticleFilter(InferenceModule):
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
+        # evenly distribute the particle among positions
         numParticlesPerPosition = self.numParticles/len(self.legalPositions)
         assert numParticlesPerPosition>0
         for position in self.legalPositions:
             for i in range(numParticlesPerPosition):
                 self.particleList.append(position)
+        # if cannot be equally divided, then we randomly distribute the rest over the positions
         numParticlesLeft = self.numParticles % len(self.legalPositions)
         for i in range(numParticlesLeft):
             self.particleList.append(random.choice(self.legalPositions))
@@ -314,12 +312,15 @@ class ParticleFilter(InferenceModule):
             self.particleList = [self.getJailPosition() for i in range(self.numParticles)]
             return
 
+        # if the ghost isn't caught
+        # we multiply the most recent belief with the emission model
         newBelief = util.Counter()
         for position in self.particleList:
             trueDistance = util.manhattanDistance(position, pacmanPosition)
             weight = emissionModel[trueDistance]
             newBelief[position] += weight
 
+        # if all the particles have weight 0 and game isn't over yet, then we need to re-initialize particles uniformly
         if newBelief.totalCount() == 0:
             self.initializeUniformly(gameState)
             return
@@ -342,6 +343,7 @@ class ParticleFilter(InferenceModule):
         a belief distribution.
         """
         "*** YOUR CODE HERE ***"
+        # move the particles according to the transition probability
         newParticleList = []
         for oldPosition in self.particleList:
             newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPosition))
@@ -357,6 +359,7 @@ class ParticleFilter(InferenceModule):
         Counter object)
         """
         "*** YOUR CODE HERE ***"
+        # get all the particle positions and calculate/normalize the belief based on that
         beliefs = util.Counter()
         beliefs.incrementAll(self.particleList, 1)
         beliefs.normalize()
@@ -433,8 +436,10 @@ class JointParticleFilter:
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
+        # initialize list of possible tuples
         possibleTuples = itertools.product(self.legalPositions, repeat=self.numGhosts)
         possibleTuplesList = [ positionTuple for positionTuple in possibleTuples ]
+        # shuffle and evenly distribute the particles
         random.shuffle(possibleTuplesList)
         self.particleList = []
         for i in range(self.numParticles):
@@ -509,6 +514,7 @@ class JointParticleFilter:
                             weights[particle] = 1.
             # this ghost is not caught
             else:
+                # multiply the most recent belief with the emission probablity
                 newBelief = util.Counter()
                 for particleTuple in self.particleList:
                     position = particleTuple[i]
@@ -582,6 +588,7 @@ class JointParticleFilter:
 
             "*** YOUR CODE HERE ***"
             for i in range(self.numGhosts):
+                # modify the particles according to the transition probability for each ghost
                 newPosDist = getPositionDistributionForGhost(
                     setGhostPositions(gameState, oldParticle), i, self.ghostAgents[i])
                 newPosition = util.sample(newPosDist)
@@ -589,10 +596,11 @@ class JointParticleFilter:
 
             "*** END YOUR CODE HERE ***"
             newParticles.append(tuple(newParticle))
-        self.particles = newParticles
+        self.particleList = newParticles
 
     def getBeliefDistribution(self):
         "*** YOUR CODE HERE ***"
+        # get all the particle positions and calculate/normalize the belief based on that
         beliefs = util.Counter()
         beliefs.incrementAll(self.particleList, 1)
         beliefs.normalize()
